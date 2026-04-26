@@ -25,6 +25,7 @@ interface CartItem extends Product {
 interface User {
   phone: string;
   name: string;
+  email?: string;
   bonuses: number;
   registered: boolean;
 }
@@ -131,7 +132,7 @@ const PRODUCTS: Product[] = [
 const CATEGORIES = ["Все", "Паракорд", "Камень", "3D змеи", "3D игрушки", "Свечи"];
 
 const FAQ = [
-  { q: "Как долго идёт доставка?", a: "Доставка по городу — 1-2 дня, по России — 3-7 дней в зависимости от региона." },
+  { q: "Как долго идёт доставка?", a: "Доставка от 1 дня — зависит от региона и способа доставки." },
   { q: "Можно ли вернуть товар?", a: "Да, возврат возможен в течение 14 дней при сохранении товарного вида." },
   { q: "Браслеты ручной работы?", a: "Да, каждый браслет изготавливается вручную. Возможен индивидуальный заказ под нужный размер." },
   { q: "Как оплатить заказ?", a: "Принимаем перевод на карту, наличные при получении, а также оплату бонусными рублями." },
@@ -309,6 +310,57 @@ function RegPopup({ onClose, onRegister }: { onClose: () => void; onRegister: (p
   );
 }
 
+// ─── Email Popup ──────────────────────────────────────────────────────────────
+function EmailPopup({ onClose, onSubmit }: { onClose: () => void; onSubmit: (email: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = () => {
+    if (!email.trim() || !email.includes("@")) return;
+    onSubmit(email);
+    setDone(true);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="glass rounded-3xl p-6 w-full max-w-sm animate-scale-in border border-white/10">
+        {!done ? (
+          <>
+            <div className="text-center mb-5">
+              <div className="text-4xl mb-3">✉️</div>
+              <h2 className="text-xl font-black text-white mb-1">+25 бонусов за email!</h2>
+              <p className="text-white/50 text-sm">Укажите почту и получите 25 бонусных рублей на счёт — плюс первыми узнавайте об акциях</p>
+            </div>
+            <input
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="ваша@почта.ru"
+              type="email"
+              className="w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent mb-3"
+            />
+            <button onClick={handleSubmit} className="w-full gradient-bg text-white font-bold py-3 rounded-xl hover-scale transition-all mb-3">
+              Получить 25 бонусов
+            </button>
+            <button onClick={onClose} className="w-full text-white/30 hover:text-white/60 text-sm transition-colors py-1">
+              Не сейчас
+            </button>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <div className="text-5xl mb-4">🎉</div>
+            <h2 className="text-xl font-black text-white mb-2">Готово!</h2>
+            <p className="text-white/60 text-sm mb-2">Начислено дополнительно</p>
+            <p className="text-3xl font-black gradient-text mb-4">25 бонусов</p>
+            <button onClick={onClose} className="w-full gradient-bg text-white font-bold py-3 rounded-xl hover-scale">
+              Отлично!
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 function Navbar({ page, setPage, cartCount, user }: { page: Page; setPage: (p: Page) => void; cartCount: number; user: User | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -421,7 +473,7 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
             { value: "100%", label: "Ручная работа", icon: "Heart" },
             { value: "500+", label: "Клиентов", icon: "Users" },
             { value: "4.9 ★", label: "Рейтинг", icon: "Star" },
-            { value: "1-3 дня", label: "Доставка", icon: "Truck" },
+            { value: "от 1 дня", label: "Доставка", icon: "Truck" },
           ].map((s, i) => (
             <div key={i} className="glass rounded-2xl p-6 text-center card-hover animate-fade-in" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
               <Icon name={s.icon} size={28} className="text-purple-400 mx-auto mb-2" />
@@ -805,22 +857,43 @@ function ProfilePage({ user, onRegister }: { user: User | null; onRegister: (pho
   );
 }
 
+const PROMO_CODES: Record<string, number> = {
+  "ТВОРИМ10": 10,
+  "BONUS15": 15,
+  "WELCOME": 5,
+};
+
 // ─── PAYMENT ─────────────────────────────────────────────────────────────────
 function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: User | null; onOrderPlace: (bonusesEarned: number) => void }) {
   const [selected, setSelected] = useState(0);
   const [useBonuses, setUseBonuses] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState<number | null>(null);
+  const [promoError, setPromoError] = useState(false);
   const [ordered, setOrdered] = useState(false);
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const bonusDiscount = (useBonuses && user) ? Math.min(user.bonuses, total) : 0;
-  const finalTotal = Math.max(0, total - bonusDiscount);
+  const maxBonusDiscount = Math.floor(total * 0.3);
+  const bonusDiscount = (useBonuses && user) ? Math.min(user.bonuses, maxBonusDiscount) : 0;
+  const promoDiscount = promoApplied ? Math.floor(total * promoApplied / 100) : 0;
+  const finalTotal = Math.max(0, total - bonusDiscount - promoDiscount);
   const earnedBonuses = calcBonuses(finalTotal);
 
   const methods = [
     { icon: "Send", label: "Перевод на карту", desc: "Реквизиты придут после подтверждения заказа" },
     { icon: "Banknote", label: "Наличные при получении", desc: "Оплата курьеру или при самовывозе" },
-    { icon: "Coins", label: "Бонусные рубли", desc: `Списать накопленные бонусы (${user?.bonuses ?? 0} ₽)` },
   ];
+
+  const applyPromo = () => {
+    const discount = PROMO_CODES[promoCode.trim().toUpperCase()];
+    if (discount) {
+      setPromoApplied(discount);
+      setPromoError(false);
+    } else {
+      setPromoApplied(null);
+      setPromoError(true);
+    }
+  };
 
   const handleOrder = () => {
     setOrdered(true);
@@ -853,12 +926,12 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
       </div>
 
       <h2 className="text-lg font-bold text-white mb-3">Способ оплаты</h2>
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-5">
         {methods.map((m, i) => (
-          <button key={i} onClick={() => { setSelected(i); if (i !== 2) setUseBonuses(false); else setUseBonuses(true); }}
-            className={`w-full glass rounded-2xl p-5 flex items-center gap-4 text-left transition-all card-hover animate-fade-in ${
+          <button key={i} onClick={() => setSelected(i)}
+            className={`w-full glass rounded-2xl p-5 flex items-center gap-4 text-left transition-all card-hover ${
               selected === i ? "ring-1 ring-purple-500/60 bg-purple-500/10" : ""
-            }`} style={{ animationDelay: `${i * 0.08}s`, opacity: 0 }}>
+            }`}>
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
               selected === i ? "gradient-bg" : "bg-white/5"
             }`}>
@@ -873,6 +946,43 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
         ))}
       </div>
 
+      {/* Bonus toggle */}
+      {user && user.bonuses > 0 && (
+        <div className="glass rounded-2xl p-4 flex items-center justify-between mb-5">
+          <div>
+            <p className="text-white font-semibold text-sm">Оплатить бонусами</p>
+            <p className="text-white/40 text-xs">У вас {user.bonuses} бонусов · можно списать до 30% суммы ({maxBonusDiscount} ₽)</p>
+          </div>
+          <button
+            onClick={() => setUseBonuses(!useBonuses)}
+            className={`relative w-12 h-6 rounded-full transition-all flex-shrink-0 ${useBonuses ? "gradient-bg" : "bg-white/10"}`}>
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${useBonuses ? "left-6" : "left-0.5"}`} />
+          </button>
+        </div>
+      )}
+
+      {/* Promo code */}
+      <div className="mb-5">
+        <p className="text-white/60 text-sm mb-2 font-medium">Промокод</p>
+        <div className="flex gap-2">
+          <input
+            value={promoCode}
+            onChange={e => { setPromoCode(e.target.value); setPromoError(false); setPromoApplied(null); }}
+            placeholder="Введите промокод"
+            className="flex-1 glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent"
+          />
+          <button onClick={applyPromo} className="gradient-bg text-white font-bold px-5 py-3 rounded-xl hover-scale text-sm">
+            Применить
+          </button>
+        </div>
+        {promoApplied && (
+          <p className="text-green-400 text-xs mt-1.5 flex items-center gap-1">
+            <Icon name="CheckCircle2" size={12} /> Промокод применён — скидка {promoApplied}%
+          </p>
+        )}
+        {promoError && <p className="text-red-400 text-xs mt-1.5">Промокод не найден или уже использован</p>}
+      </div>
+
       {/* Summary */}
       {cart.length > 0 && (
         <div className="glass rounded-2xl p-5 mb-6 space-y-2">
@@ -882,6 +992,11 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
           {bonusDiscount > 0 && (
             <div className="flex justify-between text-yellow-400 text-sm">
               <span>Бонусы (скидка)</span><span>−{bonusDiscount} ₽</span>
+            </div>
+          )}
+          {promoDiscount > 0 && (
+            <div className="flex justify-between text-green-400 text-sm">
+              <span>Промокод ({promoApplied}%)</span><span>−{promoDiscount} ₽</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-white text-lg border-t border-white/10 pt-2">
@@ -978,8 +1093,8 @@ function SupportPage() {
           <div className="mt-4 glass rounded-2xl p-4 flex items-center gap-3">
             <Icon name="Phone" size={20} className="text-purple-400 flex-shrink-0" />
             <div>
-              <p className="text-white font-semibold text-sm">8 800 123-45-67</p>
-              <p className="text-white/40 text-xs">Бесплатно, пн–сб 9:00–20:00</p>
+              <p className="text-white font-semibold text-sm">+7 (989) 826-36-50</p>
+              <p className="text-white/40 text-xs">пн–сб 9:00–20:00</p>
             </div>
           </div>
         </div>
@@ -993,23 +1108,41 @@ export default function Index() {
   const [page, setPage] = useState<Page>("home");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [showPopup, setShowPopup] = useState(false);
+  const [showRegPopup, setShowRegPopup] = useState(false);
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
 
-  // Show popup for non-registered users after 20 seconds, only once
+  // Popup for non-registered users after 20s, only once per session
   useEffect(() => {
     if (user) return;
     const shown = sessionStorage.getItem("popupShown");
     if (shown) return;
     const timer = setTimeout(() => {
-      setShowPopup(true);
+      setShowRegPopup(true);
       sessionStorage.setItem("popupShown", "1");
     }, 20000);
     return () => clearTimeout(timer);
   }, [user]);
 
+  // Email popup: show 60s after registration, only if no email yet
+  useEffect(() => {
+    if (!user || user.email) return;
+    const shown = sessionStorage.getItem("emailPopupShown");
+    if (shown) return;
+    const timer = setTimeout(() => {
+      setShowEmailPopup(true);
+      sessionStorage.setItem("emailPopupShown", "1");
+    }, 60000);
+    return () => clearTimeout(timer);
+  }, [user]);
+
   const handleRegister = (phone: string, name: string) => {
     setUser({ phone, name, bonuses: 50, registered: true });
-    setShowPopup(false);
+    setShowRegPopup(false);
+  };
+
+  const handleEmailSubmit = (email: string) => {
+    setUser(u => u ? { ...u, email, bonuses: u.bonuses + 25 } : u);
+    setShowEmailPopup(false);
   };
 
   const addToCart = (product: Product) => {
@@ -1040,8 +1173,11 @@ export default function Index() {
         {page === "payment" && <PaymentPage cart={cart} user={user} onOrderPlace={handleOrderPlace} />}
         {page === "support" && <SupportPage />}
       </main>
-      {showPopup && !user && (
-        <RegPopup onClose={() => setShowPopup(false)} onRegister={handleRegister} />
+      {showRegPopup && !user && (
+        <RegPopup onClose={() => setShowRegPopup(false)} onRegister={handleRegister} />
+      )}
+      {showEmailPopup && user && !user.email && (
+        <EmailPopup onClose={() => setShowEmailPopup(false)} onSubmit={handleEmailSubmit} />
       )}
     </div>
   );
