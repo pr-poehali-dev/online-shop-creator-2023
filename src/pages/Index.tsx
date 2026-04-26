@@ -863,6 +863,8 @@ const PROMO_CODES: Record<string, number> = {
   "WELCOME": 5,
 };
 
+const SAVE_ORDER_URL = "https://functions.poehali.dev/4ad949ab-08e8-44e5-9a10-8e24a91c71fe";
+
 // ─── PAYMENT ─────────────────────────────────────────────────────────────────
 function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: User | null; onOrderPlace: (bonusesEarned: number) => void }) {
   const [selected, setSelected] = useState(0);
@@ -871,6 +873,9 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
   const [promoApplied, setPromoApplied] = useState<number | null>(null);
   const [promoError, setPromoError] = useState(false);
   const [ordered, setOrdered] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [clientName, setClientName] = useState(user?.name ?? "");
+  const [clientPhone, setClientPhone] = useState(user?.phone ?? "");
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const maxBonusDiscount = Math.floor(total * 0.3);
@@ -895,9 +900,32 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
     }
   };
 
-  const handleOrder = () => {
-    setOrdered(true);
-    onOrderPlace(earnedBonuses);
+  const handleOrder = async () => {
+    if (!clientPhone.trim()) return;
+    setLoading(true);
+    try {
+      await fetch(SAVE_ORDER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_name: clientName,
+          client_phone: clientPhone,
+          client_email: user?.email ?? "",
+          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, category: i.category })),
+          total_amount: total,
+          bonus_discount: bonusDiscount,
+          promo_discount: promoDiscount,
+          promo_code: promoApplied ? promoCode : null,
+          final_amount: finalTotal,
+          payment_method: methods[selected].label,
+          bonuses_earned: earnedBonuses,
+        }),
+      });
+    } finally {
+      setLoading(false);
+      setOrdered(true);
+      onOrderPlace(earnedBonuses);
+    }
   };
 
   if (ordered) return (
@@ -923,6 +951,27 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
       <div className="glass rounded-2xl p-4 flex items-center gap-3 mb-6 border border-purple-500/30">
         <Icon name="Phone" size={20} className="text-purple-400 flex-shrink-0" />
         <p className="text-white/70 text-sm">Для подтверждения заказа вам позвонят — убедитесь, что телефон доступен</p>
+      </div>
+
+      {/* Contact fields */}
+      <h2 className="text-lg font-bold text-white mb-3">Контактные данные</h2>
+      <div className="space-y-3 mb-6">
+        <input
+          value={clientName}
+          onChange={e => setClientName(e.target.value)}
+          placeholder="Ваше имя"
+          className="w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent"
+        />
+        <input
+          value={clientPhone}
+          onChange={e => setClientPhone(e.target.value)}
+          placeholder="+7 (___) ___-__-__"
+          type="tel"
+          className={`w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 bg-transparent ${
+            !clientPhone.trim() ? "ring-1 ring-red-500/40" : "focus:ring-purple-500/50"
+          }`}
+        />
+        {!clientPhone.trim() && <p className="text-red-400 text-xs">Укажите телефон для подтверждения заказа</p>}
       </div>
 
       <h2 className="text-lg font-bold text-white mb-3">Способ оплаты</h2>
@@ -1008,8 +1057,11 @@ function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: Use
         </div>
       )}
 
-      <button onClick={handleOrder} className="w-full gradient-bg text-white font-bold py-4 rounded-2xl hover-scale glow-purple transition-all text-lg">
-        Оформить заказ
+      <button
+        onClick={handleOrder}
+        disabled={loading || !clientPhone.trim()}
+        className="w-full gradient-bg text-white font-bold py-4 rounded-2xl hover-scale glow-purple transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed">
+        {loading ? "Оформляем..." : "Оформить заказ"}
       </button>
       <div className="flex items-center justify-center gap-2 mt-4 text-white/30 text-xs">
         <Icon name="Shield" size={14} />

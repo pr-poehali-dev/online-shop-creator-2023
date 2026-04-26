@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Save order",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "client_name": "Тест Тестов",
+        "client_phone": "+79001234567",
+        "client_email": "test@test.ru",
+        "items": [{"id": 1, "name": "Браслет из паракорда «Чёрный»", "price": 379, "qty": 2, "category": "Паракорд"}],
+        "total_amount": 758,
+        "bonus_discount": 0,
+        "promo_discount": 0,
+        "promo_code": null,
+        "final_amount": 758,
+        "payment_method": "Перевод на карту",
+        "bonuses_earned": 35
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
