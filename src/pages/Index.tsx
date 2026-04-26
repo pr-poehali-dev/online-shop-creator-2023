@@ -56,9 +56,31 @@ const PRODUCTS: Product[] = [
     emoji: "💎",
     image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/1ec666cf-6c22-4cb6-bfb3-0d7447c5340b.png",
   },
+  {
+    id: 4,
+    name: "3D змея «Чёрная» подвижная",
+    price: 389,
+    rating: 4.8,
+    reviews: 23,
+    category: "3D змеи",
+    tag: "Новинка",
+    emoji: "🐍",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/fce2b0f1-e8ca-4e9a-b147-0895fa13847f.png",
+  },
+  {
+    id: 5,
+    name: "3D змея «Белая» подвижная",
+    price: 389,
+    rating: 4.9,
+    reviews: 18,
+    category: "3D змеи",
+    tag: "Новинка",
+    emoji: "🤍",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/9dddba01-ceb6-47af-83c6-a73f8a580239.png",
+  },
 ];
 
-const CATEGORIES = ["Все", "Паракорд", "Камень"];
+const CATEGORIES = ["Все", "Паракорд", "Камень", "3D змеи"];
 
 const FAQ = [
   { q: "Как долго идёт доставка?", a: "Доставка по городу — 1-2 дня, по России — 3-7 дней в зависимости от региона." },
@@ -222,7 +244,7 @@ function Navbar({ page, setPage, cartCount }: { page: Page; setPage: (p: Page) =
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: Product) => void }) {
-  const hero = "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/8241f57b-963f-4512-b91c-e1ccb137688c.png";
+  const hero = "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/files/eb41584d-6052-4cc4-9e40-9caceac8a2ab.jpg";
 
   return (
     <div className="space-y-20">
