@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -15,10 +15,18 @@ interface Product {
   tag?: string;
   emoji: string;
   image?: string;
+  description?: string;
 }
 
 interface CartItem extends Product {
   qty: number;
+}
+
+interface User {
+  phone: string;
+  name: string;
+  bonuses: number;
+  registered: boolean;
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -33,6 +41,7 @@ const PRODUCTS: Product[] = [
     tag: "Хит",
     emoji: "🖤",
     image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/8241f57b-963f-4512-b91c-e1ccb137688c.png",
+    description: "Прочный браслет ручного плетения из качественного паракорда 550. Регулируемый размер, надёжная застёжка. Подходит для ежедневной носки, не боится воды.",
   },
   {
     id: 2,
@@ -44,6 +53,7 @@ const PRODUCTS: Product[] = [
     tag: "Новинка",
     emoji: "🌿",
     image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/af24d7f5-81b6-4c43-addb-85719f5359c6.png",
+    description: "Яркий плетёный браслет из паракорда зелёного цвета. Ручная работа, регулируемый размер. Отличный подарок или стильный аксессуар.",
   },
   {
     id: 3,
@@ -55,6 +65,7 @@ const PRODUCTS: Product[] = [
     tag: "Хит",
     emoji: "💎",
     image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/1ec666cf-6c22-4cb6-bfb3-0d7447c5340b.png",
+    description: "Элегантный браслет из натуральных камней на эластичной нити. Каждый камень уникален. Подходит для повседневного образа и особых случаев.",
   },
   {
     id: 4,
@@ -66,6 +77,7 @@ const PRODUCTS: Product[] = [
     tag: "Новинка",
     emoji: "🐍",
     image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/fce2b0f1-e8ca-4e9a-b147-0895fa13847f.png",
+    description: "Подвижная змея из 3D-печати длиной 60 см. Каждый сегмент двигается независимо — настоящий антистресс! Экологичный гипоаллергенный пластик, безопасен для детей.",
   },
   {
     id: 5,
@@ -77,16 +89,52 @@ const PRODUCTS: Product[] = [
     tag: "Новинка",
     emoji: "🤍",
     image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/9dddba01-ceb6-47af-83c6-a73f8a580239.png",
+    description: "Белоснежная подвижная змея 3D-печати, длина 60 см. Гипоаллергенный материал, 3D-печать. Отличный антистресс и необычный подарок.",
+  },
+  {
+    id: 6,
+    name: "3D кот «Батон» белый",
+    price: 378,
+    rating: 4.9,
+    reviews: 41,
+    category: "3D игрушки",
+    tag: "Хит",
+    emoji: "🐱",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/9ba8189b-dc42-4037-b10f-58cbeaa4d38e.png",
+    description: "Игрушка-антистресс «Кот Батон» из 3D-печати. Длина 12 см, подвижные элементы. Яркие голубые глаза, белоснежный цвет. Экологичный гипоаллергенный пластик.",
+  },
+  {
+    id: 7,
+    name: "Свеча из кокосового воска 50 мл",
+    price: 320,
+    rating: 4.8,
+    reviews: 29,
+    category: "Свечи",
+    tag: "Новинка",
+    emoji: "🕯️",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/94ec9844-1ed8-4ab8-b3bd-2e6e069bad08.jpg",
+    description: "Ароматическая свеча из натурального кокосового воска с деревянным фитилем. Объём 50 мл. Горит равномерно, создаёт уютный треск дерева. Ручная заливка.",
+  },
+  {
+    id: 8,
+    name: "Свеча из кокосового воска 100 мл",
+    price: 490,
+    rating: 4.9,
+    reviews: 17,
+    category: "Свечи",
+    emoji: "🕯️",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/94ec9844-1ed8-4ab8-b3bd-2e6e069bad08.jpg",
+    description: "Большая ароматическая свеча из натурального кокосового воска с деревянным фитилём. Объём 100 мл, время горения до 30 часов. Уютный треск, приятный аромат.",
   },
 ];
 
-const CATEGORIES = ["Все", "Паракорд", "Камень", "3D змеи"];
+const CATEGORIES = ["Все", "Паракорд", "Камень", "3D змеи", "3D игрушки", "Свечи"];
 
 const FAQ = [
   { q: "Как долго идёт доставка?", a: "Доставка по городу — 1-2 дня, по России — 3-7 дней в зависимости от региона." },
   { q: "Можно ли вернуть товар?", a: "Да, возврат возможен в течение 14 дней при сохранении товарного вида." },
   { q: "Браслеты ручной работы?", a: "Да, каждый браслет изготавливается вручную. Возможен индивидуальный заказ под нужный размер." },
-  { q: "Как оплатить заказ?", a: "Принимаем карты Visa/МИР, СБП, наличные при получении." },
+  { q: "Как оплатить заказ?", a: "Принимаем перевод на карту, наличные при получении, а также оплату бонусными рублями." },
   { q: "Можно ли заказать свой цвет?", a: "Конечно! Напишите нам — сделаем браслет в нужном цвете или комбинации." },
 ];
 
@@ -98,9 +146,13 @@ const ORDERS = [
 
 const REVIEWS = [
   { author: "Анна К.", rating: 5, text: "Браслет просто шикарный! Паракорд крепкий, застёжка надёжная. Уже заказала второй в подарок.", date: "14 апр" },
-  { author: "Михаил В.", rating: 5, text: "Взял чёрный паракорд — отличное качество, сделано аккуратно. Быстрая доставка.", date: "10 апр" },
-  { author: "Светлана О.", rating: 5, text: "Браслет из камня — просто красота! Упакован аккуратно, выглядит дорого. Очень довольна.", date: "2 апр" },
+  { author: "Михаил В.", rating: 5, text: "Взял чёрного кота — смешной и качественный! Дочка в восторге. Быстрая доставка.", date: "10 апр" },
+  { author: "Светлана О.", rating: 5, text: "Свеча из кокосового воска — запах нежнейший, горит красиво. Деревянный фитиль потрескивает — уют!", date: "2 апр" },
 ];
+
+// ─── Bonus utils ──────────────────────────────────────────────────────────────
+const BONUS_PER_100 = 5;
+const calcBonuses = (amount: number) => Math.floor(amount / 100) * BONUS_PER_100;
 
 // ─── Stars ────────────────────────────────────────────────────────────────────
 function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
@@ -116,6 +168,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
 // ─── Product Card ─────────────────────────────────────────────────────────────
 function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product) => void }) {
   const [showReview, setShowReview] = useState(false);
+  const [showDesc, setShowDesc] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
 
@@ -136,7 +189,17 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
       </div>
       <div className="p-4">
         <p className="text-xs text-purple-400 font-medium mb-1">{product.category}</p>
-        <h3 className="font-semibold text-sm text-white mb-2 leading-tight">{product.name}</h3>
+        <h3 className="font-semibold text-sm text-white mb-1 leading-tight">{product.name}</h3>
+        {product.description && (
+          <div className="mb-2">
+            <p className={`text-xs text-white/50 leading-relaxed transition-all ${showDesc ? "" : "line-clamp-2"}`}>
+              {product.description}
+            </p>
+            <button onClick={() => setShowDesc(!showDesc)} className="text-purple-400 text-xs mt-0.5 hover:text-purple-300">
+              {showDesc ? "Свернуть" : "Читать далее"}
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-3">
           <Stars rating={product.rating} />
           <span className="text-xs text-white/40">({product.reviews})</span>
@@ -144,6 +207,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
         <div className="flex items-end gap-2 mb-3">
           <span className="text-lg font-bold text-white">{product.price.toLocaleString()} ₽</span>
           {product.oldPrice && <span className="text-xs text-white/30 line-through">{product.oldPrice.toLocaleString()} ₽</span>}
+          <span className="ml-auto text-xs text-purple-400">+{calcBonuses(product.price)} бонусов</span>
         </div>
         <div className="flex gap-2">
           <button onClick={() => onAdd(product)}
@@ -183,8 +247,70 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
   );
 }
 
+// ─── Registration Popup ───────────────────────────────────────────────────────
+function RegPopup({ onClose, onRegister }: { onClose: () => void; onRegister: (phone: string, name: string) => void }) {
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [step, setStep] = useState<"form" | "success">("form");
+
+  const handleSubmit = () => {
+    if (!phone.trim() || !name.trim()) return;
+    onRegister(phone, name);
+    setStep("success");
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="glass rounded-3xl p-6 w-full max-w-sm animate-scale-in border border-white/10">
+        {step === "form" ? (
+          <>
+            <div className="text-center mb-5">
+              <div className="text-4xl mb-3">🎁</div>
+              <h2 className="text-xl font-black text-white mb-1">Получите 50 бонусов!</h2>
+              <p className="text-white/50 text-sm">Зарегистрируйтесь и получите 50 бонусных рублей на первый заказ</p>
+            </div>
+            <div className="space-y-3 mb-4">
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Ваше имя"
+                className="w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent"
+              />
+              <input
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="+7 (___) ___-__-__"
+                type="tel"
+                className="w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent"
+              />
+            </div>
+            <button onClick={handleSubmit} className="w-full gradient-bg text-white font-bold py-3 rounded-xl hover-scale transition-all mb-3">
+              Зарегистрироваться и получить бонусы
+            </button>
+            <button onClick={onClose} className="w-full text-white/30 hover:text-white/60 text-sm transition-colors py-1">
+              Позже
+            </button>
+            <p className="text-white/20 text-xs text-center mt-3">За каждые 100 ₽ покупки — 5 бонусных рублей</p>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <div className="text-5xl mb-4">🎉</div>
+            <h2 className="text-xl font-black text-white mb-2">Вы зарегистрированы!</h2>
+            <p className="text-white/60 text-sm mb-2">На ваш счёт начислено</p>
+            <p className="text-3xl font-black gradient-text mb-4">50 бонусов</p>
+            <p className="text-white/40 text-xs mb-5">Используйте их при оформлении заказа</p>
+            <button onClick={onClose} className="w-full gradient-bg text-white font-bold py-3 rounded-xl hover-scale">
+              Начать покупки
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Navbar ───────────────────────────────────────────────────────────────────
-function Navbar({ page, setPage, cartCount }: { page: Page; setPage: (p: Page) => void; cartCount: number }) {
+function Navbar({ page, setPage, cartCount, user }: { page: Page; setPage: (p: Page) => void; cartCount: number; user: User | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const nav = [
     { id: "home" as Page, label: "Главная", icon: "Home" },
@@ -217,6 +343,12 @@ function Navbar({ page, setPage, cartCount }: { page: Page; setPage: (p: Page) =
               )}
             </button>
           ))}
+          {user && (
+            <div className="ml-2 flex items-center gap-1.5 glass px-3 py-1.5 rounded-xl">
+              <Icon name="Coins" size={14} className="text-yellow-400" />
+              <span className="text-yellow-400 text-sm font-bold">{user.bonuses}</span>
+            </div>
+          )}
         </div>
         <button className="md:hidden text-white/70" onClick={() => setMenuOpen(!menuOpen)}>
           <Icon name={menuOpen ? "X" : "Menu"} size={24} />
@@ -236,6 +368,12 @@ function Navbar({ page, setPage, cartCount }: { page: Page; setPage: (p: Page) =
               )}
             </button>
           ))}
+          {user && (
+            <div className="flex items-center gap-2 px-6 py-3 border-t border-white/5">
+              <Icon name="Coins" size={16} className="text-yellow-400" />
+              <span className="text-yellow-400 text-sm font-bold">{user.bonuses} бонусов</span>
+            </div>
+          )}
         </div>
       )}
     </nav>
@@ -256,13 +394,13 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
         <div className="relative z-10 max-w-3xl mx-auto text-center px-6 py-20">
           <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-purple-300 mb-6 animate-fade-in">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Браслеты ручной работы — каждый уникален
+            Браслеты, 3D-игрушки и свечи ручной работы
           </div>
           <h1 className="font-display text-5xl md:text-7xl font-black mb-6 leading-none animate-fade-in" style={{ animationDelay: "0.1s", opacity: 0 }}>
             <span className="gradient-text">ТВОРИМ</span><br />украшения
           </h1>
           <p className="text-white/60 text-lg mb-8 animate-fade-in" style={{ animationDelay: "0.2s", opacity: 0 }}>
-            Браслеты из паракорда и натурального камня — сделано с душой, доставка по всей России
+            Браслеты из паракорда и камня, 3D-игрушки, свечи из кокосового воска — сделано с душой, доставка по всей России
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.3s", opacity: 0 }}>
             <button onClick={() => setPage("catalog")}
@@ -296,13 +434,13 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
 
       <section className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-black text-white">Наши браслеты</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-white">Наши товары</h2>
           <button onClick={() => setPage("catalog")} className="text-purple-400 hover:text-purple-300 text-sm font-medium flex items-center gap-1 transition-colors">
             Весь каталог <Icon name="ArrowRight" size={16} />
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {PRODUCTS.map((p, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {PRODUCTS.slice(0, 4).map((p, i) => (
             <div key={p.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
               <ProductCard product={p} onAdd={onAdd} />
             </div>
@@ -310,11 +448,26 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
         </div>
       </section>
 
+      {/* Loyalty banner */}
+      <section className="max-w-7xl mx-auto px-4">
+        <div className="glass rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6"
+          style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.10))" }}>
+          <div className="text-5xl">🎁</div>
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-xl font-black text-white mb-1">Система лояльности</h2>
+            <p className="text-white/60 text-sm">За каждые 100 ₽ покупки — 5 бонусных рублей на счёт. При регистрации сразу <span className="text-yellow-400 font-bold">+50 бонусов</span>!</p>
+          </div>
+          <button onClick={() => setPage("profile")} className="gradient-bg text-white font-bold px-6 py-3 rounded-xl hover-scale whitespace-nowrap">
+            Зарегистрироваться
+          </button>
+        </div>
+      </section>
+
       <section className="max-w-7xl mx-auto px-4">
         <h2 className="text-2xl md:text-3xl font-black text-white mb-8">Почему выбирают нас</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[
-            { icon: "Scissors", title: "Ручная работа", text: "Каждый браслет делается вручную с вниманием к деталям" },
+            { icon: "Scissors", title: "Ручная работа", text: "Каждый браслет и украшение делается вручную с вниманием к деталям" },
             { icon: "Ruler", title: "Любой размер", text: "Изготовим под ваш размер запястья — просто напишите нам" },
             { icon: "Palette", title: "Свой цвет", text: "Закажите браслет в любом цвете или уникальной комбинации" },
           ].map((f, i) => (
@@ -371,7 +524,7 @@ function CatalogPage({ onAdd }: { onAdd: (p: Product) => void }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-black text-white mb-6">Каталог браслетов</h1>
+      <h1 className="text-3xl font-black text-white mb-6">Каталог</h1>
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Icon name="Search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
@@ -416,8 +569,9 @@ function CatalogPage({ onAdd }: { onAdd: (p: Product) => void }) {
 }
 
 // ─── CART ────────────────────────────────────────────────────────────────────
-function CartPage({ cart, setCart, setPage }: { cart: CartItem[]; setCart: (c: CartItem[]) => void; setPage: (p: Page) => void }) {
+function CartPage({ cart, setCart, setPage, user }: { cart: CartItem[]; setCart: (c: CartItem[]) => void; setPage: (p: Page) => void; user: User | null }) {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const earnedBonuses = calcBonuses(total);
 
   const update = (id: number, delta: number) =>
     setCart(cart.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
@@ -441,9 +595,13 @@ function CartPage({ cart, setCart, setPage }: { cart: CartItem[]; setCart: (c: C
         <div className="lg:col-span-2 space-y-3">
           {cart.map((item, i) => (
             <div key={item.id} className="glass rounded-2xl p-4 flex items-center gap-4 animate-fade-in card-hover" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
-              <div className="w-16 h-16 rounded-xl flex items-center justify-center text-4xl flex-shrink-0"
+              <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0"
                 style={{ background: "rgba(168,85,247,0.15)" }}>
-                {item.emoji}
+                {item.image ? (
+                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl">{item.emoji}</div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-white text-sm leading-tight truncate">{item.name}</p>
@@ -472,12 +630,22 @@ function CartPage({ cart, setCart, setPage }: { cart: CartItem[]; setCart: (c: C
               <span>Доставка</span>
               <span className="text-green-400">Бесплатно</span>
             </div>
+            {user && (
+              <div className="flex justify-between text-yellow-400 text-sm">
+                <span>Бонусов на счету</span>
+                <span>{user.bonuses} ₽</span>
+              </div>
+            )}
           </div>
-          <div className="border-t border-white/10 pt-4 mb-6">
+          <div className="border-t border-white/10 pt-4 mb-3">
             <div className="flex justify-between font-bold text-white text-xl">
               <span>К оплате</span>
               <span className="gradient-text">{total.toLocaleString()} ₽</span>
             </div>
+          </div>
+          <div className="flex items-center gap-2 glass rounded-xl p-3 mb-4">
+            <Icon name="Coins" size={16} className="text-yellow-400 flex-shrink-0" />
+            <p className="text-yellow-400 text-xs font-medium">За этот заказ вы получите <b>+{earnedBonuses}</b> бонусов</p>
           </div>
           <button onClick={() => setPage("payment")} className="w-full gradient-bg text-white font-bold py-3.5 rounded-2xl hover-scale glow-purple transition-all">
             Оформить заказ
@@ -492,24 +660,58 @@ function CartPage({ cart, setCart, setPage }: { cart: CartItem[]; setCart: (c: C
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
-function ProfilePage() {
-  const [tab, setTab] = useState<"orders" | "settings">("orders");
+function ProfilePage({ user, onRegister }: { user: User | null; onRegister: (phone: string, name: string) => void }) {
+  const [tab, setTab] = useState<"orders" | "settings" | "bonuses">("orders");
+  const [showRegForm, setShowRegForm] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+
+  const handleReg = () => {
+    if (!phone.trim() || !name.trim()) return;
+    onRegister(phone, name);
+    setShowRegForm(false);
+  };
+
+  if (!user) return (
+    <div className="max-w-md mx-auto px-4 py-20 text-center">
+      <div className="text-6xl mb-4">👤</div>
+      <h2 className="text-2xl font-black text-white mb-2">Личный кабинет</h2>
+      <p className="text-white/50 mb-6 text-sm">Зарегистрируйтесь, чтобы получить 50 бонусных рублей и следить за заказами</p>
+      {!showRegForm ? (
+        <button onClick={() => setShowRegForm(true)} className="gradient-bg text-white font-bold px-8 py-3 rounded-2xl hover-scale">
+          Зарегистрироваться
+        </button>
+      ) : (
+        <div className="glass rounded-2xl p-6 space-y-3 text-left">
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Ваше имя"
+            className="w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 (___) ___-__-__" type="tel"
+            className="w-full glass rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent" />
+          <button onClick={handleReg} className="w-full gradient-bg text-white font-bold py-3 rounded-xl hover-scale">
+            Получить 50 бонусов и войти
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center gap-5 mb-8 animate-fade-in">
-        <div className="w-20 h-20 gradient-bg rounded-2xl flex items-center justify-center text-4xl font-black text-white glow-purple">А</div>
+        <div className="w-20 h-20 gradient-bg rounded-2xl flex items-center justify-center text-4xl font-black text-white glow-purple">
+          {user.name[0]}
+        </div>
         <div>
-          <h1 className="text-2xl font-black text-white">Анна Смирнова</h1>
-          <p className="text-white/50 text-sm">anna@example.com</p>
+          <h1 className="text-2xl font-black text-white">{user.name}</h1>
+          <p className="text-white/50 text-sm">{user.phone}</p>
           <div className="flex items-center gap-2 mt-1">
-            <span className="w-2 h-2 bg-purple-400 rounded-full" />
-            <span className="text-purple-400 text-xs font-medium">Бонусный счёт: 480 ₽</span>
+            <Icon name="Coins" size={14} className="text-yellow-400" />
+            <span className="text-yellow-400 text-xs font-medium">Бонусный счёт: {user.bonuses} ₽</span>
           </div>
         </div>
       </div>
-      <div className="flex gap-2 mb-6">
-        {[{ id: "orders" as const, label: "Мои заказы" }, { id: "settings" as const, label: "Настройки" }].map(t => (
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {[{ id: "orders" as const, label: "Мои заказы" }, { id: "bonuses" as const, label: "Бонусы" }, { id: "settings" as const, label: "Настройки" }].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
               tab === t.id ? "gradient-bg text-white" : "glass text-white/60 hover:text-white"
@@ -539,18 +741,59 @@ function ProfilePage() {
           ))}
         </div>
       )}
+      {tab === "bonuses" && (
+        <div className="animate-fade-in space-y-4">
+          <div className="glass rounded-2xl p-6 text-center"
+            style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.10))" }}>
+            <Icon name="Coins" size={36} className="text-yellow-400 mx-auto mb-2" />
+            <p className="text-white/60 text-sm mb-1">Ваш бонусный баланс</p>
+            <p className="font-display text-5xl font-black gradient-text">{user.bonuses}</p>
+            <p className="text-white/40 text-xs mt-1">бонусных рублей</p>
+          </div>
+          <div className="glass rounded-2xl p-5 space-y-3">
+            <h3 className="font-bold text-white">Как работают бонусы</h3>
+            <div className="flex items-start gap-3">
+              <span className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">1</span>
+              <p className="text-white/60 text-sm">При регистрации — <span className="text-yellow-400 font-bold">+50 бонусов</span></p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">2</span>
+              <p className="text-white/60 text-sm">За каждые <span className="text-yellow-400 font-bold">100 ₽</span> покупки — <span className="text-yellow-400 font-bold">5 бонусов</span></p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">3</span>
+              <p className="text-white/60 text-sm">Бонусы списываются при оформлении заказа вместо оплаты</p>
+            </div>
+          </div>
+          <div className="glass rounded-2xl p-4">
+            <h3 className="font-bold text-white text-sm mb-3">История начислений</h3>
+            {[
+              { label: "Регистрация", bonus: "+50", date: "Сегодня" },
+              { label: "Заказ #00124", bonus: "+117", date: "20 апр" },
+              { label: "Заказ #00098", bonus: "+82", date: "5 апр" },
+            ].map((h, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                <div>
+                  <p className="text-white text-sm">{h.label}</p>
+                  <p className="text-white/40 text-xs">{h.date}</p>
+                </div>
+                <span className="text-yellow-400 font-bold">{h.bonus}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {tab === "settings" && (
         <div className="glass rounded-2xl p-6 space-y-5 animate-fade-in">
           {[
-            { label: "Имя", value: "Анна Смирнова" },
-            { label: "Email", value: "anna@example.com" },
-            { label: "Телефон", value: "+7 (912) 345-67-89" },
-            { label: "Адрес доставки", value: "Краснодар, ул. Красная, 1" },
+            { label: "Имя", value: user.name },
+            { label: "Телефон", value: user.phone },
+            { label: "Адрес доставки", value: "" },
           ].map((f, i) => (
             <div key={i}>
               <label className="text-white/50 text-xs mb-1.5 block">{f.label}</label>
-              <input defaultValue={f.value}
-                className="w-full glass rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent" />
+              <input defaultValue={f.value} placeholder={f.value ? undefined : "Введите адрес"}
+                className="w-full glass rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500/50 bg-transparent placeholder-white/30" />
             </div>
           ))}
           <button className="gradient-bg text-white font-bold px-6 py-3 rounded-xl hover-scale transition-all">
@@ -563,23 +806,56 @@ function ProfilePage() {
 }
 
 // ─── PAYMENT ─────────────────────────────────────────────────────────────────
-function PaymentPage() {
+function PaymentPage({ cart, user, onOrderPlace }: { cart: CartItem[]; user: User | null; onOrderPlace: (bonusesEarned: number) => void }) {
   const [selected, setSelected] = useState(0);
+  const [useBonuses, setUseBonuses] = useState(false);
+  const [ordered, setOrdered] = useState(false);
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const bonusDiscount = (useBonuses && user) ? Math.min(user.bonuses, total) : 0;
+  const finalTotal = Math.max(0, total - bonusDiscount);
+  const earnedBonuses = calcBonuses(finalTotal);
+
   const methods = [
-    { icon: "CreditCard", label: "Банковская карта", desc: "Visa, МИР, Mastercard", badge: "Быстро" },
-    { icon: "Smartphone", label: "СБП", desc: "Система быстрых платежей", badge: "Без комиссии" },
-    { icon: "Banknote", label: "Наличные при получении", desc: "Оплата курьеру", badge: null },
-    { icon: "Clock", label: "Оплата частями", desc: "Раздели платёж на 4 части", badge: "0%" },
-    { icon: "Wallet", label: "Бонусные рубли", desc: "Спишите накопленные бонусы", badge: null },
+    { icon: "Send", label: "Перевод на карту", desc: "Реквизиты придут после подтверждения заказа" },
+    { icon: "Banknote", label: "Наличные при получении", desc: "Оплата курьеру или при самовывозе" },
+    { icon: "Coins", label: "Бонусные рубли", desc: `Списать накопленные бонусы (${user?.bonuses ?? 0} ₽)` },
   ];
+
+  const handleOrder = () => {
+    setOrdered(true);
+    onOrderPlace(earnedBonuses);
+  };
+
+  if (ordered) return (
+    <div className="max-w-md mx-auto px-4 py-20 text-center">
+      <div className="text-6xl mb-4 animate-float">🎉</div>
+      <h2 className="text-2xl font-black text-white mb-3">Заказ оформлен!</h2>
+      <p className="text-white/60 text-sm mb-4">Для подтверждения заказа вам позвонит наш менеджер в ближайшее время.</p>
+      {user && earnedBonuses > 0 && (
+        <div className="glass rounded-2xl p-4 mb-6 flex items-center justify-center gap-2">
+          <Icon name="Coins" size={18} className="text-yellow-400" />
+          <p className="text-yellow-400 font-bold">+{earnedBonuses} бонусов начислено на счёт</p>
+        </div>
+      )}
+      <p className="text-white/40 text-xs">Если вам не позвонили в течение 30 минут — свяжитесь с нами в разделе «Поддержка»</p>
+    </div>
+  );
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-black text-white mb-2">Способы оплаты</h1>
-      <p className="text-white/50 text-sm mb-8">Выберите удобный способ оплаты заказа</p>
-      <div className="space-y-3">
+      <h1 className="text-3xl font-black text-white mb-2">Оформление заказа</h1>
+      <p className="text-white/50 text-sm mb-8">После оформления вам позвонит менеджер для подтверждения</p>
+
+      <div className="glass rounded-2xl p-4 flex items-center gap-3 mb-6 border border-purple-500/30">
+        <Icon name="Phone" size={20} className="text-purple-400 flex-shrink-0" />
+        <p className="text-white/70 text-sm">Для подтверждения заказа вам позвонят — убедитесь, что телефон доступен</p>
+      </div>
+
+      <h2 className="text-lg font-bold text-white mb-3">Способ оплаты</h2>
+      <div className="space-y-3 mb-6">
         {methods.map((m, i) => (
-          <button key={i} onClick={() => setSelected(i)}
+          <button key={i} onClick={() => { setSelected(i); if (i !== 2) setUseBonuses(false); else setUseBonuses(true); }}
             className={`w-full glass rounded-2xl p-5 flex items-center gap-4 text-left transition-all card-hover animate-fade-in ${
               selected === i ? "ring-1 ring-purple-500/60 bg-purple-500/10" : ""
             }`} style={{ animationDelay: `${i * 0.08}s`, opacity: 0 }}>
@@ -592,13 +868,33 @@ function PaymentPage() {
               <p className="font-semibold text-white">{m.label}</p>
               <p className="text-white/40 text-sm">{m.desc}</p>
             </div>
-            {m.badge && <span className="text-xs gradient-bg text-white px-2.5 py-1 rounded-full font-bold">{m.badge}</span>}
             {selected === i && <Icon name="CheckCircle2" size={20} className="text-purple-400 flex-shrink-0" />}
           </button>
         ))}
       </div>
-      <button className="w-full gradient-bg text-white font-bold py-4 rounded-2xl mt-8 hover-scale glow-purple transition-all text-lg">
-        Оплатить заказ
+
+      {/* Summary */}
+      {cart.length > 0 && (
+        <div className="glass rounded-2xl p-5 mb-6 space-y-2">
+          <div className="flex justify-between text-white/60 text-sm">
+            <span>Товары</span><span>{total.toLocaleString()} ₽</span>
+          </div>
+          {bonusDiscount > 0 && (
+            <div className="flex justify-between text-yellow-400 text-sm">
+              <span>Бонусы (скидка)</span><span>−{bonusDiscount} ₽</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-white text-lg border-t border-white/10 pt-2">
+            <span>Итого</span><span className="gradient-text">{finalTotal.toLocaleString()} ₽</span>
+          </div>
+          {user && earnedBonuses > 0 && (
+            <p className="text-yellow-400 text-xs">+{earnedBonuses} бонусов будет начислено</p>
+          )}
+        </div>
+      )}
+
+      <button onClick={handleOrder} className="w-full gradient-bg text-white font-bold py-4 rounded-2xl hover-scale glow-purple transition-all text-lg">
+        Оформить заказ
       </button>
       <div className="flex items-center justify-center gap-2 mt-4 text-white/30 text-xs">
         <Icon name="Shield" size={14} />
@@ -633,7 +929,7 @@ function SupportPage() {
         <div className="glass rounded-2xl overflow-hidden flex flex-col animate-fade-in" style={{ height: 460 }}>
           <div className="p-4 border-b border-white/5 flex items-center gap-3">
             <div className="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center">
-              <span className="text-lg">🎨</span>
+              <span className="text-lg">✨</span>
             </div>
             <div>
               <p className="font-semibold text-white text-sm">ТВОРИМ23 Support</p>
@@ -696,6 +992,25 @@ function SupportPage() {
 export default function Index() {
   const [page, setPage] = useState<Page>("home");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
+
+  // Show popup for non-registered users after 20 seconds, only once
+  useEffect(() => {
+    if (user) return;
+    const shown = sessionStorage.getItem("popupShown");
+    if (shown) return;
+    const timer = setTimeout(() => {
+      setShowPopup(true);
+      sessionStorage.setItem("popupShown", "1");
+    }, 20000);
+    return () => clearTimeout(timer);
+  }, [user]);
+
+  const handleRegister = (phone: string, name: string) => {
+    setUser({ phone, name, bonuses: 50, registered: true });
+    setShowPopup(false);
+  };
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -705,19 +1020,29 @@ export default function Index() {
     });
   };
 
+  const handleOrderPlace = (bonusesEarned: number) => {
+    if (user && bonusesEarned > 0) {
+      setUser(u => u ? { ...u, bonuses: u.bonuses + bonusesEarned } : u);
+    }
+    setCart([]);
+  };
+
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   return (
     <div className="min-h-screen mesh-bg">
-      <Navbar page={page} setPage={setPage} cartCount={cartCount} />
+      <Navbar page={page} setPage={setPage} cartCount={cartCount} user={user} />
       <main className="pt-16">
         {page === "home" && <HomePage setPage={setPage} onAdd={addToCart} />}
         {page === "catalog" && <CatalogPage onAdd={addToCart} />}
-        {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} />}
-        {page === "profile" && <ProfilePage />}
-        {page === "payment" && <PaymentPage />}
+        {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} />}
+        {page === "profile" && <ProfilePage user={user} onRegister={handleRegister} />}
+        {page === "payment" && <PaymentPage cart={cart} user={user} onOrderPlace={handleOrderPlace} />}
         {page === "support" && <SupportPage />}
       </main>
+      {showPopup && !user && (
+        <RegPopup onClose={() => setShowPopup(false)} onRegister={handleRegister} />
+      )}
     </div>
   );
 }
