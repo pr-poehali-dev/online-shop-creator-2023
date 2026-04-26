@@ -14,6 +14,7 @@ interface Product {
   category: string;
   tag?: string;
   emoji: string;
+  image?: string;
 }
 
 interface CartItem extends Product {
@@ -22,24 +23,49 @@ interface CartItem extends Product {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PRODUCTS: Product[] = [
-  { id: 1, name: "Акриловые краски 36 цветов", price: 1290, oldPrice: 1890, rating: 4.8, reviews: 142, category: "Краски", tag: "Хит", emoji: "🎨" },
-  { id: 2, name: "Набор кистей «Мастер»", price: 890, rating: 4.9, reviews: 98, category: "Кисти", tag: "Новинка", emoji: "🖌️" },
-  { id: 3, name: "Скетчбук А4 на пружине", price: 450, rating: 4.7, reviews: 205, category: "Бумага", emoji: "📓" },
-  { id: 4, name: "Пастель масляная 48 цв.", price: 2100, oldPrice: 2600, rating: 4.6, reviews: 67, category: "Пастель", tag: "Скидка", emoji: "🖍️" },
-  { id: 5, name: "Холст на подрамнике 40×50", price: 380, rating: 4.5, reviews: 312, category: "Холсты", emoji: "🖼️" },
-  { id: 6, name: "Акварель «Ленинград» 24 цв.", price: 1650, rating: 4.9, reviews: 189, category: "Краски", tag: "Хит", emoji: "💧" },
-  { id: 7, name: "Линеры для скетчинга 8 шт.", price: 720, rating: 4.7, reviews: 88, category: "Графика", emoji: "✏️" },
-  { id: 8, name: "Гуашь художественная 12 цв.", price: 560, oldPrice: 690, rating: 4.6, reviews: 134, category: "Краски", emoji: "🎭" },
+  {
+    id: 1,
+    name: "Браслет из паракорда «Чёрный»",
+    price: 379,
+    rating: 4.9,
+    reviews: 87,
+    category: "Паракорд",
+    tag: "Хит",
+    emoji: "🖤",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/8241f57b-963f-4512-b91c-e1ccb137688c.png",
+  },
+  {
+    id: 2,
+    name: "Браслет из паракорда «Зелёный»",
+    price: 379,
+    rating: 4.8,
+    reviews: 54,
+    category: "Паракорд",
+    tag: "Новинка",
+    emoji: "🌿",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/af24d7f5-81b6-4c43-addb-85719f5359c6.png",
+  },
+  {
+    id: 3,
+    name: "Браслет из камня",
+    price: 469,
+    rating: 4.9,
+    reviews: 36,
+    category: "Камень",
+    tag: "Хит",
+    emoji: "💎",
+    image: "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/1ec666cf-6c22-4cb6-bfb3-0d7447c5340b.png",
+  },
 ];
 
-const CATEGORIES = ["Все", "Краски", "Кисти", "Бумага", "Пастель", "Холсты", "Графика"];
+const CATEGORIES = ["Все", "Паракорд", "Камень"];
 
 const FAQ = [
   { q: "Как долго идёт доставка?", a: "Доставка по городу — 1-2 дня, по России — 3-7 дней в зависимости от региона." },
-  { q: "Можно ли вернуть товар?", a: "Да, возврат возможен в течение 14 дней при сохранении товарного вида и упаковки." },
-  { q: "Есть ли оптовые цены?", a: "Для заказов от 15 000 ₽ действует скидка 10%, от 30 000 ₽ — 15%. Свяжитесь с нами." },
-  { q: "Как оплатить заказ?", a: "Принимаем карты Visa/МИР, СБП, наличные при получении и оплату частями." },
-  { q: "Есть ли программа лояльности?", a: "Да! За каждые 100 ₽ покупки начисляем 5 бонусных рублей. Накопленное — списываем при следующем заказе." },
+  { q: "Можно ли вернуть товар?", a: "Да, возврат возможен в течение 14 дней при сохранении товарного вида." },
+  { q: "Браслеты ручной работы?", a: "Да, каждый браслет изготавливается вручную. Возможен индивидуальный заказ под нужный размер." },
+  { q: "Как оплатить заказ?", a: "Принимаем карты Visa/МИР, СБП, наличные при получении." },
+  { q: "Можно ли заказать свой цвет?", a: "Конечно! Напишите нам — сделаем браслет в нужном цвете или комбинации." },
 ];
 
 const ORDERS = [
@@ -49,9 +75,9 @@ const ORDERS = [
 ];
 
 const REVIEWS = [
-  { author: "Анна К.", rating: 5, text: "Краски отличные, цвета яркие, расход экономный. Буду заказывать ещё!", date: "14 апр" },
-  { author: "Михаил В.", rating: 5, text: "Быстрая доставка, всё упаковано аккуратно. Кисти держат форму отлично.", date: "10 апр" },
-  { author: "Светлана О.", rating: 4, text: "Хороший магазин, цены честные. Чуть долгая доставка, но товар стоит того.", date: "2 апр" },
+  { author: "Анна К.", rating: 5, text: "Браслет просто шикарный! Паракорд крепкий, застёжка надёжная. Уже заказала второй в подарок.", date: "14 апр" },
+  { author: "Михаил В.", rating: 5, text: "Взял чёрный паракорд — отличное качество, сделано аккуратно. Быстрая доставка.", date: "10 апр" },
+  { author: "Светлана О.", rating: 5, text: "Браслет из камня — просто красота! Упакован аккуратно, выглядит дорого. Очень довольна.", date: "2 апр" },
 ];
 
 // ─── Stars ────────────────────────────────────────────────────────────────────
@@ -73,9 +99,13 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
 
   return (
     <div className="glass rounded-2xl overflow-hidden card-hover group">
-      <div className="relative h-44 flex items-center justify-center overflow-hidden"
+      <div className="relative h-52 flex items-center justify-center overflow-hidden"
         style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.12))" }}>
-        <span className="text-7xl animate-float">{product.emoji}</span>
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <span className="text-7xl animate-float">{product.emoji}</span>
+        )}
         {product.tag && (
           <span className="absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full gradient-bg text-white">
             {product.tag}
@@ -192,7 +222,7 @@ function Navbar({ page, setPage, cartCount }: { page: Page; setPage: (p: Page) =
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: Product) => void }) {
-  const hero = "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/files/23d6529f-5ff9-4627-8fc1-ed8070e0634d.jpg";
+  const hero = "https://cdn.poehali.dev/projects/48b2efde-8e0f-45fa-b796-1a8d32e2d6e9/bucket/8241f57b-963f-4512-b91c-e1ccb137688c.png";
 
   return (
     <div className="space-y-20">
@@ -204,13 +234,13 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
         <div className="relative z-10 max-w-3xl mx-auto text-center px-6 py-20">
           <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-purple-300 mb-6 animate-fade-in">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Более 5000 товаров для творчества
+            Браслеты ручной работы — каждый уникален
           </div>
           <h1 className="font-display text-5xl md:text-7xl font-black mb-6 leading-none animate-fade-in" style={{ animationDelay: "0.1s", opacity: 0 }}>
-            <span className="gradient-text">Творите</span><br />без границ
+            <span className="gradient-text">ТВОРИМ</span><br />украшения
           </h1>
           <p className="text-white/60 text-lg mb-8 animate-fade-in" style={{ animationDelay: "0.2s", opacity: 0 }}>
-            Краски, кисти, холсты и всё для вашего творчества с доставкой по всей России
+            Браслеты из паракорда и натурального камня — сделано с душой, доставка по всей России
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.3s", opacity: 0 }}>
             <button onClick={() => setPage("catalog")}
@@ -228,10 +258,10 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
       <section className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { value: "5000+", label: "Товаров", icon: "Package" },
-            { value: "12 000", label: "Клиентов", icon: "Users" },
+            { value: "100%", label: "Ручная работа", icon: "Heart" },
+            { value: "500+", label: "Клиентов", icon: "Users" },
             { value: "4.9 ★", label: "Рейтинг", icon: "Star" },
-            { value: "1-2 дня", label: "Доставка", icon: "Truck" },
+            { value: "1-3 дня", label: "Доставка", icon: "Truck" },
           ].map((s, i) => (
             <div key={i} className="glass rounded-2xl p-6 text-center card-hover animate-fade-in" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
               <Icon name={s.icon} size={28} className="text-purple-400 mx-auto mb-2" />
@@ -244,13 +274,13 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
 
       <section className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-black text-white">Новинки</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-white">Наши браслеты</h2>
           <button onClick={() => setPage("catalog")} className="text-purple-400 hover:text-purple-300 text-sm font-medium flex items-center gap-1 transition-colors">
-            Все товары <Icon name="ArrowRight" size={16} />
+            Весь каталог <Icon name="ArrowRight" size={16} />
           </button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {PRODUCTS.filter(p => p.tag === "Новинка" || p.tag === "Хит").slice(0, 4).map((p, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {PRODUCTS.map((p, i) => (
             <div key={p.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
               <ProductCard product={p} onAdd={onAdd} />
             </div>
@@ -259,11 +289,17 @@ function HomePage({ setPage, onAdd }: { setPage: (p: Page) => void; onAdd: (p: P
       </section>
 
       <section className="max-w-7xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-black text-white mb-8">Рекомендуем</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {PRODUCTS.filter(p => !p.tag).slice(0, 4).map((p, i) => (
-            <div key={p.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
-              <ProductCard product={p} onAdd={onAdd} />
+        <h2 className="text-2xl md:text-3xl font-black text-white mb-8">Почему выбирают нас</h2>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { icon: "Scissors", title: "Ручная работа", text: "Каждый браслет делается вручную с вниманием к деталям" },
+            { icon: "Ruler", title: "Любой размер", text: "Изготовим под ваш размер запястья — просто напишите нам" },
+            { icon: "Palette", title: "Свой цвет", text: "Закажите браслет в любом цвете или уникальной комбинации" },
+          ].map((f, i) => (
+            <div key={i} className="glass rounded-2xl p-6 card-hover animate-fade-in" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
+              <Icon name={f.icon} size={28} className="text-purple-400 mb-3" />
+              <h3 className="font-bold text-white mb-2">{f.title}</h3>
+              <p className="text-white/50 text-sm">{f.text}</p>
             </div>
           ))}
         </div>
@@ -313,7 +349,7 @@ function CatalogPage({ onAdd }: { onAdd: (p: Product) => void }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-black text-white mb-6">Каталог товаров</h1>
+      <h1 className="text-3xl font-black text-white mb-6">Каталог браслетов</h1>
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Icon name="Search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
